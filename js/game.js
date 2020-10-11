@@ -5,8 +5,8 @@ var gameEnded = false;
 
 
 let modInfo = {
-	name: "The Modding Tree",
-	id: "modbase",
+	name: "The Modding Test",
+	id: "modtest",
 	pointsName: "points",
 	discordName: "",
 	discordLink: "",
@@ -14,10 +14,10 @@ let modInfo = {
 }
 
 let VERSION = {
-	num: "1.3.5 maybe",
-	name: "Tabception... ception!",
-	tmtNum: "1.3.5 maybe",
-	tmtName: "Tabception... ception!"
+	num: "2.0???",
+	name: "???",
+	tmtNum: "2.0???",
+	tmtName: "???!"
 }
 
 // Determines if it should show points/sec
