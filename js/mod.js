@@ -12,11 +12,13 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.1.1",
+	num: "0.1.2",
 	name: "Totally not Golden Circles",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.1.2</h3><br>
+		- You may now sell Better Mergeables. You will not get any work from doing this.<br>
 	<h3>v0.1.1</h3><br>
 		- Gilded Circles are now, as intended, connected to the Merge layer.<br>
 	<h3>v0.1.0</h3><br>
