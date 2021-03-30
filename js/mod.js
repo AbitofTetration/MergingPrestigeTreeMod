@@ -1,11 +1,11 @@
 let modInfo = {
-	name: "The ??? Tree",
-	id: "mymod",
+	name: "A Prestige Tree Mod about Merging",
+	id: "prestreemerge",
 	author: "nobody",
 	pointsName: "points",
 	discordName: "",
 	discordLink: "",
-	initialStartPoints: new Decimal (10), // Used for hard resets and new players
+	initialStartPoints: new Decimal (0), // Used for hard resets and new players
 	
 	offlineLimit: 1,  // In hours
 }
@@ -36,12 +36,33 @@ function canGenPoints(){
 	return true
 }
 
+function getWorkEfficiency() {
+  let effect = player.p.points.add(getResetGain("p")).max(1)
+  effect = effect.cbrt()
+  return effect
+}
+
+function getMergeableWorkBoosts() {
+  let boost = layers.p.clickables[11].power()
+  boost = boost.mul(layers.p.clickables[12].power())
+  boost = boost.mul(layers.p.clickables[13].power())
+  boost = boost.mul(layers.p.clickables[21].power())
+  boost = boost.mul(layers.p.clickables[22].power())
+  boost = boost.mul(layers.p.clickables[23].power())
+  boost = boost.mul(layers.p.clickables[31].power())
+  boost = boost.mul(layers.p.clickables[32].power())
+  boost = boost.mul(layers.p.clickables[33].power())
+  return boost
+}
+
 // Calculate points/sec!
 function getPointGen() {
 	if(!canGenPoints())
 		return new Decimal(0)
 
 	let gain = new Decimal(1)
+  gain = gain.div(getWorkEfficiency())
+  gain = gain.mul(getMergeableWorkBoosts())
 	return gain
 }
 
@@ -51,6 +72,8 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
+  function() {return "Your current and potential work is dividing your point gain by "+format(getWorkEfficiency())+"."},
+  function() {if (getMergeableWorkBoosts().gt(1)) return "Your mergers are multiplying points by "+format(getMergeableWorkBoosts())+"."}
 ]
 
 // Determines when the game "ends"
