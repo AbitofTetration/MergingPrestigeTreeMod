@@ -3,8 +3,8 @@ let modInfo = {
 	id: "prestreemerge",
 	author: "nobody",
 	pointsName: "points",
-	discordName: "",
-	discordLink: "",
+	discordName: "APTMAM Discord",
+	discordLink: "https://discord.gg/Uy7Y6VTdCR",
 	initialStartPoints: new Decimal (0), // Used for hard resets and new players
 	
 	offlineLimit: 1,  // In hours
@@ -12,11 +12,17 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0.1",
-	name: "A slight QoL update",
+	num: "0.1.0",
+	name: "Totally not Golden Circles",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.1.0</h3><br>
+		- Introduced two upgrades, Better Mergeables and More Mergeables.<br>
+		- Introduced the Auto-Buyer, which can automatically buy Mergeables.<br>
+		- Introduced the Auto-Merger, which can automatically merge Mergeables.<br>
+		- Introduced Gilded Points, which are a prestige layer. They have two upgrades which boost your game.<br>
+		- Empty tiles now darken.<br>
 	<h3>v0.0.1</h3><br>
 		- Mergeables now highlight when selected.<br>
 	<h3>v0.0</h3><br>
@@ -54,6 +60,9 @@ function getMergeableWorkBoosts() {
   boost = boost.mul(layers.p.clickables[31].power())
   boost = boost.mul(layers.p.clickables[32].power())
   boost = boost.mul(layers.p.clickables[33].power())
+  boost = boost.mul(layers.p.clickables[41].power())
+  boost = boost.mul(layers.p.clickables[42].power())
+  boost = boost.mul(layers.p.clickables[43].power())
   return boost
 }
 
@@ -65,6 +74,7 @@ function getPointGen() {
 	let gain = new Decimal(1)
   gain = gain.div(getWorkEfficiency())
   gain = gain.mul(getMergeableWorkBoosts())
+  gain = gain.mul(buyableEffect("g", 11))
 	return gain
 }
 
