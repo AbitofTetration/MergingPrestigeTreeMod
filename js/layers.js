@@ -102,6 +102,7 @@ addLayer("p", {
         }
       },
       style() {
+        if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
         return { 'background-color': "#e05e5e" }
       },
     },
@@ -146,6 +147,7 @@ addLayer("p", {
         }
       },
       style() {
+        if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
         return { 'background-color': "#e3ad66" }
       },
     },
@@ -234,6 +236,7 @@ addLayer("p", {
         }
       },
       style() {
+        if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
         return { 'background-color': "#91e660" }
       },
     },
@@ -278,6 +281,7 @@ addLayer("p", {
         }
       },
       style() {
+        if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
         return { 'background-color': "#33e857" }
       },
     },
@@ -322,6 +326,7 @@ addLayer("p", {
         }
       },
       style() {
+        if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
         return { 'background-color': "#33e8ac" }
       },
     },
@@ -366,6 +371,7 @@ addLayer("p", {
         }
       },
       style() {
+        if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
         return { 'background-color': "#33bee8" }
       },
     },
@@ -410,6 +416,7 @@ addLayer("p", {
         }
       },
       style() {
+        if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
         return { 'background-color': "#617fed" }
       },
     },
@@ -454,6 +461,7 @@ addLayer("p", {
         }
       },
       style() {
+        if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
         return { 'background-color': "#d16bcb" }
       },
     },
