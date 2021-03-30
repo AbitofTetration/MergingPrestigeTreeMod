@@ -1172,6 +1172,7 @@ addLayer("g", {
                 buyMax() {}, // You'll have to handle this yourself if you want
             },
         },
+        branches: ["p"],
   layerShown() { return hasMilestone("sc", 2) }
 })
 
