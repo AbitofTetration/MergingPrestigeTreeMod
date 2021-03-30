@@ -591,6 +591,11 @@ addLayer("p", {
                 style() {
                    if (player[this.layer].buyables[this.id].eq(10)) return { 'background-color': "#77bf5f" }
                 },
+                canSellOne() {
+                    return player[this.layer].buyables[this.id].gt(1)},
+                sellOne() {
+                    player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].sub(1)
+                },
                 buyMax() {}, // You'll have to handle this yourself if you want
             },
             12: {
@@ -1139,11 +1144,6 @@ addLayer("g", {
                 },
                 style() {
                    if (player[this.layer].buyables[this.id].eq(10)) return { 'background-color': "#77bf5f" }
-                },
-                canSellOne() {
-                    return player[this.layer].buyables[this.id].gt(1)},
-                sellOne() {
-                    player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].sub(1)
                 },
                 buyMax() {}, // You'll have to handle this yourself if you want
             },
