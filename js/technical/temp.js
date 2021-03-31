@@ -37,6 +37,10 @@ function setupTemp() {
 		tmp[layer].computedNodeStyle = []
 		setupBarStyles(layer)
 	}
+
+  
+  tmp.automation = {}
+  tmp.automation.color = "#ffffff"
 	temp = tmp
 }
 

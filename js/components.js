@@ -193,12 +193,13 @@ function loadVue() {
 			<span v-html="tmp[layer].milestones[data].effectDescription"></span><br>
 		<span v-if="(tmp[layer].milestones[data].toggles)&&(hasMilestone(layer, data))" v-for="toggle in tmp[layer].milestones[data].toggles"><toggle :layer= "layer" :data= "toggle" v-bind:style="tmp[layer].componentStyles.toggle"></toggle>&nbsp;</span></td></tr>
 		`
-	})
+	}) // automation
 
 	Vue.component('toggle', {
 		props: ['layer', 'data'],
 		template: `
-		<button class="smallUpg can" v-bind:style="{'background-color': tmp[data[0]].color}" v-on:click="toggleAuto(data)">{{player[data[0]][data[1]]?"ON":"OFF"}}</button>
+		<button v-if="(data.length == 3)" class="smallUpg can" v-bind:style="{'background-color': tmp[data[0]].color}" v-on:click="toggleAutoLonger(data)">{{player[data[0]][data[1]][data[2]]?"ON":"OFF"}}</button>
+		<button v-if="(data.length == 2)" class="smallUpg can" v-bind:style="{'background-color': tmp[data[0]].color}" v-on:click="toggleAuto(data)">{{player[data[0]][data[1]]?"ON":"OFF"}}</button>
 		`
 	})
 

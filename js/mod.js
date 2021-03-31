@@ -12,14 +12,22 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.1.2.1",
-	name: "Totally not Golden Circles",
+	num: "0.2.0",
+	name: "It gets deep",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.2.0</h3><br>
+		- Added the Faster Auto-Merge and Even More Mergeables Gold Upgrades.<br>
+		- Improved the design of Mergeables.<br>
+		- Introduced the Auto-Worker, which can automatically produce Work.<br>
+		- Introduced the Auto-Upgrader, which can automatically buy Merge Upgrades.<br>
+		- Introduced Gilded Mergeables, which improve the level cap of the Better Mergeables Merge Upgrade.<br>
+		- Better Mergeables cost now scales extremely fast above level 10.<br>
+		- Optimized code length.<br>
 	<h3>v0.1.2.1</h3><br>
 		- You may now actually sell Better Mergeables.<br>
-		- You can no longer sell the More Points Gold Upgrade..<br>
+		- You can no longer sell the More Points Gold Upgrade.<br>
 	<h3>v0.1.2</h3><br>
 		- You may now sell Better Mergeables. You will not get any work from doing this.<br>
 	<h3>v0.1.1</h3><br>
@@ -61,15 +69,32 @@ function getMergeableWorkBoosts() {
   let boost = layers.p.clickables[11].power()
   boost = boost.mul(layers.p.clickables[12].power())
   boost = boost.mul(layers.p.clickables[13].power())
+  boost = boost.mul(layers.p.clickables[44].power())
   boost = boost.mul(layers.p.clickables[21].power())
   boost = boost.mul(layers.p.clickables[22].power())
   boost = boost.mul(layers.p.clickables[23].power())
+  boost = boost.mul(layers.p.clickables[44].power())
   boost = boost.mul(layers.p.clickables[31].power())
   boost = boost.mul(layers.p.clickables[32].power())
   boost = boost.mul(layers.p.clickables[33].power())
+  boost = boost.mul(layers.p.clickables[44].power())
   boost = boost.mul(layers.p.clickables[41].power())
   boost = boost.mul(layers.p.clickables[42].power())
   boost = boost.mul(layers.p.clickables[43].power())
+  boost = boost.mul(layers.p.clickables[44].power())
+  return boost
+}
+
+function getGMergeableCapBoosts() {
+  let boost = layers.g.clickables[11].power().floor()
+  boost = boost.add(layers.g.clickables[12].power().floor())
+  boost = boost.add(layers.g.clickables[13].power().floor())
+  boost = boost.add(layers.g.clickables[21].power().floor())
+  boost = boost.add(layers.g.clickables[22].power().floor())
+  boost = boost.add(layers.g.clickables[23].power().floor())
+  boost = boost.add(layers.g.clickables[31].power().floor())
+  boost = boost.add(layers.g.clickables[32].power().floor())
+  boost = boost.add(layers.g.clickables[33].power().floor())
   return boost
 }
 
@@ -87,6 +112,14 @@ function getPointGen() {
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addedPlayerData() { return {
+  automation: {
+    p: {
+        autoBuyerOn: false,
+        autoMergeOn: false,
+        autoUpgradeOn: false,
+        autoWorkOn: false,
+    }
+  }
 }}
 
 // Display extra things at the top of the page

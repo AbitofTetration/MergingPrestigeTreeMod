@@ -131,6 +131,33 @@ function rowReset(row, layer) {
 	}
 }
 
+function partialLayerDataReset(layer, keep = []) {
+	let storedData = {unlocked: player[layer].unlocked, automation: player[layer].automation} // Always keep unlocked, always keep automation
+
+	for (thing in keep) {
+		if (player[layer][keep[thing]] !== undefined)
+			storedData[keep[thing]] = player[layer][keep[thing]]
+	}
+	Vue.set(player[layer], "buyables", getStartBuyables(layer))
+	Vue.set(player[layer], "clickables", getStartClickables(layer))
+	Vue.set(player[layer], "challenges", getStartChallenges(layer))
+
+	layOver(player[layer], getStartLayerData(layer))
+	player[layer].upgrades = []
+	player[layer].milestones = []
+	player[layer].achievements = []
+	player[layer].challenges = getStartChallenges(layer)
+	resetBuyables(layer)
+
+	if (layers[layer].clickables && !player[layer].clickables) 
+		player[layer].clickables = getStartClickables(layer)
+	for (thing in storedData) {
+		player[layer][thing] = storedData[thing]
+    console.log(player[layer][thing])
+    console.log(storedData[thing])
+	}
+}
+
 function layerDataReset(layer, keep = []) {
 	let storedData = {unlocked: player[layer].unlocked} // Always keep unlocked
 
@@ -153,6 +180,8 @@ function layerDataReset(layer, keep = []) {
 		player[layer].clickables = getStartClickables(layer)
 	for (thing in storedData) {
 		player[layer][thing] =storedData[thing]
+    console.log(player[layer][thing])
+    console.log(storedData[thing])
 	}
 }
 
