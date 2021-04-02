@@ -1517,7 +1517,7 @@ addLayer("mm", {
       [31]: new Decimal(0), [32]: new Decimal(0), [33]: new Decimal(0) } // Optional default Clickable state*/
     }
   },
-  image:"hhttps://abitoftetration.github.io/MergingPrestigeTreeMod/aptmammastery1.png",
+  image:"https://abitoftetration.github.io/MergingPrestigeTreeMod/aptmammastery1.png",
   color: "#62de87",
   requires: new Decimal(2.5e12), // Can be a function that takes requirement increases into account
   resource: "merge levels", // Name of prestige currency
