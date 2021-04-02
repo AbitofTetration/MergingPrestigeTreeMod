@@ -79,7 +79,7 @@ addLayer("p", {
       [41]: new Decimal(0), [42]: new Decimal(0), [43]: new Decimal(0), [44]: new Decimal(0), [45]: new Decimal(0) } // Optional default Clickable state
     }
   },
-  image:"https://abitoftetration.github.io/MergingPrestigeTreeMod/aptmammerge.png",
+  image:"/aptmammerge.png",
   color: "#4BDC13",
   requires: new Decimal(10), // Can be a function that takes requirement increases into account
   resource: "work", // Name of prestige currency
@@ -1517,7 +1517,7 @@ addLayer("mm", {
       [31]: new Decimal(0), [32]: new Decimal(0), [33]: new Decimal(0) } // Optional default Clickable state*/
     }
   },
-  image:"https://abitoftetration.github.io/MergingPrestigeTreeMod/aptmammastery1.png",
+  image:"/aptmammastery1.png",
   color: "#62de87",
   requires: new Decimal(2.5e12), // Can be a function that takes requirement increases into account
   resource: "merge levels", // Name of prestige currency
