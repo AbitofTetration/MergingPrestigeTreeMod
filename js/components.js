@@ -195,6 +195,9 @@ function loadVue() {
 		`
 	}) // automation
 
+  /*
+			<layer-tab v-if="tmp[layer].microtabs[data][player.subtabs[layer][data]].embedLayer" :layer="tmp[layer].microtabs[data][player.subtabs[layer][data]].embedLayer" */
+
 	Vue.component('toggle', {
 		props: ['layer', 'data'],
 		template: `

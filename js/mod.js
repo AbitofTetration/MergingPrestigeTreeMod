@@ -12,11 +12,16 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.2.0",
-	name: "It gets deep",
+	num: "0.3.0",
+	name: "Mastering the art of the merge",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.3.0</h3><br>
+		- Added Merge Mastery. Merge Mastery provides a multiplier to work and Gilded Points.<br>
+		- Added Merge Tokens. Merge Tokens can be obtained by resetting the previous progress. (aka, a new prestige layer.)<br>
+		- Added new Token Upgrades; More Gilded Points, Faster Auto-Merge, More Points, Even More Mergeables II, Even More Work, Cheaper Gilded Mergeables, and <br>
+		- Improved the layer icons.<br>
 	<h3>v0.2.0</h3><br>
 		- Added the Faster Auto-Merge and Even More Mergeables Gold Upgrades.<br>
 		- Improved the design of Mergeables.<br>
@@ -66,35 +71,16 @@ function getWorkEfficiency() {
 }
 
 function getMergeableWorkBoosts() {
-  let boost = layers.p.clickables[11].power()
-  boost = boost.mul(layers.p.clickables[12].power())
-  boost = boost.mul(layers.p.clickables[13].power())
-  boost = boost.mul(layers.p.clickables[44].power())
-  boost = boost.mul(layers.p.clickables[21].power())
-  boost = boost.mul(layers.p.clickables[22].power())
-  boost = boost.mul(layers.p.clickables[23].power())
-  boost = boost.mul(layers.p.clickables[44].power())
-  boost = boost.mul(layers.p.clickables[31].power())
-  boost = boost.mul(layers.p.clickables[32].power())
-  boost = boost.mul(layers.p.clickables[33].power())
-  boost = boost.mul(layers.p.clickables[44].power())
-  boost = boost.mul(layers.p.clickables[41].power())
-  boost = boost.mul(layers.p.clickables[42].power())
-  boost = boost.mul(layers.p.clickables[43].power())
-  boost = boost.mul(layers.p.clickables[44].power())
+  let boost=new Decimal(1)
+  for(var i in player.p.clickables)
+    if (player.p.clickables[i].gt(0)) boost=boost.mul(layers.p.clickables[i].power())
   return boost
 }
 
 function getGMergeableCapBoosts() {
-  let boost = layers.g.clickables[11].power().floor()
-  boost = boost.add(layers.g.clickables[12].power().floor())
-  boost = boost.add(layers.g.clickables[13].power().floor())
-  boost = boost.add(layers.g.clickables[21].power().floor())
-  boost = boost.add(layers.g.clickables[22].power().floor())
-  boost = boost.add(layers.g.clickables[23].power().floor())
-  boost = boost.add(layers.g.clickables[31].power().floor())
-  boost = boost.add(layers.g.clickables[32].power().floor())
-  boost = boost.add(layers.g.clickables[33].power().floor())
+  let boost=new Decimal(0)
+  for(var i in player.g.clickables)
+    if (player.g.clickables[i].gt(0)) boost=boost.add(layers.g.clickables[i].power().floor())
   return boost
 }
 
@@ -107,6 +93,7 @@ function getPointGen() {
   gain = gain.div(getWorkEfficiency())
   gain = gain.mul(getMergeableWorkBoosts())
   gain = gain.mul(buyableEffect("g", 11))
+  gain = gain.mul(buyableEffect("mp", 21))
 	return gain
 }
 
@@ -118,6 +105,12 @@ function addedPlayerData() { return {
         autoMergeOn: false,
         autoUpgradeOn: false,
         autoWorkOn: false,
+    },
+    g: {
+        autoBuyerOn: false,
+        autoMergeOn: false,
+        autoUpgradeOn: false,
+        autoGildOn: false,
     }
   }
 }}
@@ -145,4 +138,10 @@ function maxTickLength() {
 // Use this if you need to undo inflation from an older version. If the version is older than the version that fixed the issue,
 // you can cap their current resources with this.
 function fixOldSave(oldVersion){
+  if (!player.g.automation) player.g.automation = {
+        autoBuyerOn: false,
+        autoMergeOn: false,
+        autoUpgradeOn: false,
+        autoGildOn: false,
+    }
 }
