@@ -12,15 +12,18 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.3.0",
+	num: "0.3.0.1",
 	name: "Mastering the art of the merge",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.3.0.1</h3><br>
+		- Nerfed Cheaper Gilded Mergeables.<br>
+		- Merge Tokens are now harder to get more of per reset.<br>
 	<h3>v0.3.0</h3><br>
 		- Added Merge Mastery. Merge Mastery provides a multiplier to work and Gilded Points.<br>
 		- Added Merge Tokens. Merge Tokens can be obtained by resetting the previous progress. (aka, a new prestige layer.)<br>
-		- Added new Token Upgrades; More Gilded Points, Faster Auto-Merge, More Points, Even More Mergeables II, Even More Work, Cheaper Gilded Mergeables, and <br>
+		- Added new Token Upgrades; More Gilded Points, Faster Auto-Merge, More Points, Even More Mergeables II, Even More Work, Cheaper Gilded Mergeables, and More Merge Tokens.<br>
 		- Improved the layer icons.<br>
 	<h3>v0.2.0</h3><br>
 		- Added the Faster Auto-Merge and Even More Mergeables Gold Upgrades.<br>

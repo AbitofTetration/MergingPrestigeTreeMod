@@ -1635,7 +1635,7 @@ addLayer("mp", {
   baseResource: "merge levels", // Name of resource prestige is based on
   baseAmount() { return player.mm.points }, // Get the current amount of baseResource
   type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
-  exponent: 3, // Prestige currency exponent
+  exponent: 2.75, // Prestige currency exponent
   roundUpCost: true,
   gainMult() { // Calculate the multiplier for main currency from bonuses
     mult = new Decimal(1)
@@ -1845,14 +1845,14 @@ addLayer("mp", {
                     return cost.floor()
                 },
                 effect(x=player[this.layer].buyables[this.id]) { // Effects of owning x of the items, x is a decimal
-                    let eff = Decimal.pow(5, x)
+                    let eff = Decimal.pow(3, x)
                     return eff;
                 },
                 display() { // Everything else displayed in the buyable button after the title
                     let data = tmp[this.layer].buyables[this.id]
                     return "Cost: " + format(data.cost) + " merge tokens\n\
                     Level: " + formatWhole(player[this.layer].buyables[this.id]) + "/"+ formatWhole(tmp[this.layer].buyables[this.id].cap) + "\n\
-                    Gilded Mergeables are "+ format(data.effect)+"x cheaper. (Base effect 5x.)"
+                    Gilded Mergeables are "+ format(data.effect)+"x cheaper. (Base effect 3x.)"
                 },
                 unlocked() { return hasMilestone("sc", 0) }, 
                 cap() {
