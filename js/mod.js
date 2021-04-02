@@ -12,11 +12,13 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.3.0.1",
+	num: "0.3.0.2",
 	name: "Mastering the art of the merge",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.3.0.2</h3><br>
+		- Fixed a bug involving More Mergeables.<br>
 	<h3>v0.3.0.1</h3><br>
 		- Nerfed Cheaper Gilded Mergeables.<br>
 		- Merge Tokens are now harder to get more of per reset.<br>

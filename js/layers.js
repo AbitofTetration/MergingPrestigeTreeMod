@@ -750,7 +750,7 @@ addLayer("p", {
         effect = effect.pow(data.pow(2))
         return effect
       },
-      unlocked() { return player[this.layer].buyables[12].gte(1) },
+      unlocked() { return player[this.layer].buyables[12].gt(1) },
       canClick() {
         return true
       },
