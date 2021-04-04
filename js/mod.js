@@ -1,22 +1,28 @@
 let modInfo = {
 	name: "A Prestige Tree Mod about Merging",
 	id: "prestreemerge",
-	author: "nobody",
+	author: "Despacit2p0",
 	pointsName: "points",
 	discordName: "APTMAM Discord",
 	discordLink: "https://discord.gg/Uy7Y6VTdCR",
 	initialStartPoints: new Decimal (0), // Used for hard resets and new players
 	
-	offlineLimit: 1,  // In hours
+	offlineLimit: new Decimal(0)
 }
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.3.0.2",
-	name: "Mastering the art of the merge",
+	num: "0.4.0",
+	name: "Is this Realm Grinder?",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.4.0</h3><br>
+		- Introduced Treasures - Obtain Grimoires from merging Gilded Mergeables to spend on a roll for Treasures. (Yes, they are gacha.)<br>
+		- Added Resources. There are eight resources; Bricks, Tires, Rods, Meteorites, Bones, Crystals, Stars and Magnets. They are used to upgrade Treasures.<br>
+		- Added Scraps. When you max out the bonus levels of a Treasure, you can get Scrap.<br>
+    - Added Scrap Mergeables. They function like normal Mergeables, but they provide more of a boost.<br>
+    - Added new Scrap Upgrades; More Points, More Work, Faster Auto-Merge, and Faster Scrap Mergeables.<br>
 	<h3>v0.3.0.2</h3><br>
 		- Fixed a bug involving More Mergeables.<br>
 	<h3>v0.3.0.1</h3><br>
@@ -72,6 +78,7 @@ function canGenPoints(){
 function getWorkEfficiency() {
   let effect = player.p.points.add(getResetGain("p")).max(1)
   effect = effect.cbrt()
+  effect = effect.pow(buyableEffect("t", 33))
   return effect
 }
 
@@ -89,6 +96,13 @@ function getGMergeableCapBoosts() {
   return boost
 }
 
+function getScrapGain() {
+  let boost=new Decimal(0)
+  for(var i in player.scr.clickables)
+    if (player.scr.clickables[i].gt(0)) boost=boost.add(layers.scr.clickables[i].power().floor())
+  return boost
+}
+
 // Calculate points/sec!
 function getPointGen() {
 	if(!canGenPoints())
@@ -98,7 +112,9 @@ function getPointGen() {
   gain = gain.div(getWorkEfficiency())
   gain = gain.mul(getMergeableWorkBoosts())
   gain = gain.mul(buyableEffect("g", 11))
+  gain = gain.mul(buyableEffect("scr", 11))
   gain = gain.mul(buyableEffect("mp", 21))
+  gain = gain.mul(buyableEffect("t", 11))
 	return gain
 }
 
@@ -117,13 +133,15 @@ function addedPlayerData() { return {
         autoUpgradeOn: false,
         autoGildOn: false,
     }
-  }
+  },
+  timeSinceLastMerge: 0
 }}
 
 // Display extra things at the top of the page
 var displayThings = [
   function() {return "Your current and potential work is dividing your point gain by "+format(getWorkEfficiency())+"."},
-  function() {if (getMergeableWorkBoosts().gt(1)) return "Your mergers are multiplying points by "+format(getMergeableWorkBoosts())+"."}
+  function() {if (getMergeableWorkBoosts().gt(1)) return "Your mergers are multiplying points by "+format(getMergeableWorkBoosts())+"."},
+  function() {return "It has been "+formatTime(player.timeSinceLastMerge)+" since you last performed a merge."}
 ]
 
 // Determines when the game "ends"
@@ -149,4 +167,9 @@ function fixOldSave(oldVersion){
         autoUpgradeOn: false,
         autoGildOn: false,
     }
+  for (var i in layers.t.startData().bonusLevels) {
+    if (!(typeof player.t.bonusLevels[i] == "object")) {
+      player.t.bonusLevels[i] = new Decimal(0)
+    }
+  }
 }

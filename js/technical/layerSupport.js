@@ -241,7 +241,9 @@ const RIGHT = 3
 
 
 addLayer("info-tab", {
-    tabFormat: ["info-tab"],
+    tabFormat: ["info-tab",
+    ["blank", "15px"],
+    ["raw-html", '<iframe frameborder="0" src="https://itch.io/embed/981244?bg_color=767676&amp;fg_color=ffffff&amp;link_color=67c27f&amp;border_color=773bee" width="552" height="167"><a href="https://technokaguya.itch.io/aptmam">A Prestige Tree Mod About Merging by Technokaguya</a></iframe>']],
     row: "otherside"
 })
 
