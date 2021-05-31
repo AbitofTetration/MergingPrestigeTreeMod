@@ -470,6 +470,9 @@ addLayer("f", {
             }},
         },
     },
+        midsection: [
+                     ["layer-proxy", ["c", ["buyables"]]]
+        ]
 
 }, 
 )

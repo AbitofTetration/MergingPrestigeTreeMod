@@ -40,20 +40,38 @@ function getAcquireResourceRate() {
   return rate
 }
 
+function getTier(layer, id) {
+  switch(layer) {
+    case "p":
+    case "g":
+    case "scr":
+     return new Decimal(getClickableState(layer, id))
+  }
+}
+
+function getMergeIncrease(layer) {
+  let tier = new Decimal(1)
+  switch(layer) {
+    case "p":
+      break;
+  }
+  return tier
+}
+
 function merge(layer, id, merge, autoMerge=false) {
-  let data = getClickableState(layer, id)
+  let data = getTier(layer, id)
   if (new Decimal(data).lt(getHighestShit(layer))) return
-  if (new Decimal(getClickableState(layer, (autoMerge?merge:player[layer].currentMerge))).eq(data)) {
+  if (new Decimal(getTier(layer, (autoMerge?merge:player[layer].currentMerge))).eq(data)) {
     if (layer == "p" && irandom(100) < getAcquireResourceRate()) {
       let resource = choose(["bricks", "magnets", "tires", "meteorites", "bones", "stars", "beams", "crystals"])
-      if (player.t.unlocked) player.t[resource] = player.t[resource].add(1)
+      if (player.t.unlocked) player.t[resource] = player.t[resource].add(getMergeIncrease(layer).pow(2))
     }
     if (layer == "g" && irandom(100) < getGrimoireGainRate()) {
       if (player.t.unlocked) addPoints("t", 1)
     }
-    player.mm.percentage = player.mm.percentage.add(1)
+    player.mm.percentage = player.mm.percentage.add(getMergeIncrease(layer).pow(2))
     setClickableState(layer, (autoMerge?merge:player[layer].currentMerge), new Decimal(0))
-    setClickableState(layer, id, new Decimal(data).add(1))
+    setClickableState(layer, id, new Decimal(data).add(getMergeIncrease(layer)))
     if (autoMerge != true) player.timeSinceLastMerge = 0
 
   }
@@ -72,8 +90,22 @@ function buyAMergable(layer, id) {
     }
 }
 
+function getRandomMergeableColor(layer, id) {
+  let value = Math.min(random(player.seedColor*Math.sin(((getTier(layer, id).toNumber()*(player.seedColor**1.1))))), 16777216)
+  let string = ("#"+value.toString(16).split('0.')[1])
+  string = string.slice(0, -2);
+  if (string.length < 7) {
+     do {
+      string = string + "0"
+    }
+     while (string.length < 7)
+  }
+  string = string + "ff"
+  return string
+}
+
 function clickAFuckingMergeable(layer, id) {
-  let data = getClickableState(layer, id)
+  let data = getTier(layer, id)
   if (data == 0) {
     buyAMergable(layer, id)
   } else if (player[layer].currentMerge != id && player[layer].currentMerge != null) {
@@ -154,7 +186,10 @@ addLayer("p", {
     }
   },
   doReset(resettingLayer){ // Triggers when this layer is being reset, along with the layer doing the resetting. Not triggered by lower layers resetting, but is by layers on the same row.
-    if(layers[resettingLayer].row > this.row) layerDataReset(this.layer, ["automation"]) // This is actually the default behavior
+    if(layers[resettingLayer].row > this.row) {
+      layerDataReset(this.layer, ["automation"]) // This is actually the default behavior
+      player.seedColor = getRNGSeed()
+    }
   },
   update(diff) {
     player.timeSinceLastMerge += diff
@@ -205,7 +240,7 @@ addLayer("p", {
     cols: 5,
     11: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -213,14 +248,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -234,13 +269,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#e05e5e" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     12: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -248,14 +283,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -269,13 +304,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#e3ad66" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     13: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -283,14 +318,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -304,13 +339,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#d6e063" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     14: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -318,14 +353,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -339,13 +374,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#ccd173" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     15: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -353,14 +388,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -374,13 +409,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#a27ea3" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     21: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -388,14 +423,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -409,13 +444,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#91e660" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     22: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -423,14 +458,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -444,13 +479,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#33e857" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     23: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -458,14 +493,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -479,13 +514,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#33e8ac" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     24: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -493,14 +528,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -514,13 +549,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#8ec98d" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     25: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -528,14 +563,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -549,13 +584,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#e34b4b" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     31: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -563,14 +598,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -584,13 +619,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#33bee8" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     32: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -598,14 +633,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -619,13 +654,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#617fed" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     33: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -633,14 +668,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -654,13 +689,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#d16bcb" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     34: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -668,14 +703,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -689,13 +724,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#a1c9c5" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     35: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -703,14 +738,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -724,13 +759,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#f0c06e" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     41: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -738,14 +773,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -759,13 +794,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#d16991" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     42: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -773,14 +808,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -794,13 +829,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#e8979a" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     43: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -808,14 +843,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -829,13 +864,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#edbfa4" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     44: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -843,14 +878,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -864,13 +899,13 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#7e7fa3" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
     45: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -878,14 +913,14 @@ addLayer("p", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Work"
         }
         return "Giving a " + format(this.power()) + "x points boost."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = new Decimal(1.03)
         effect = effect.pow(data.pow(2))
         return effect
@@ -899,8 +934,8 @@ addLayer("p", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
-        return { 'background-color': "#effa5c" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        return { 'background-color': getRandomMergeableColor(this.layer, this.id) }
       },
     },
   },
@@ -942,9 +977,9 @@ addLayer("p", {
                     player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].add(1)
                     console.log(getHighestShit(layer))
                     for (let i in player[this.layer].clickables) {
-                      if (getClickableState(this.layer, i).lte(getHighestShit(this.layer).add(1)) && getClickableState(this.layer, i).gt(0)) {
+                      if (getTier(this.layer, i).lte(getHighestShit(this.layer).add(1)) && getTier(this.layer, i).gt(0)) {
                         setClickableState(this.layer, i, getHighestShit(this.layer).add(1))
-                        console.log(format(getClickableState(this.layer, i)))
+                        console.log(format(getTier(this.layer, i)))
                       }
                     }
                 },
@@ -987,7 +1022,7 @@ addLayer("p", {
                     return player[this.layer].points.gte(tmp[this.layer].buyables[this.id].cost) && player[this.layer].buyables[this.id].lte(tmp[this.layer].buyables[this.id].cap.sub(1))
                 },
                 buy() { 
-                    if (player[this.layer].buyables[this.id].gte(tmp[this.layer].buyables[this.id].cap)) return;
+                    if (player[this.layer].buyables[this.id].gte(tmp[this.layer].buyables[this.id].cap.add(0.1))) return;
                     cost = tmp[this.layer].buyables[this.id].cost
                     player[this.layer].points = player[this.layer].points.sub(cost)	
                     player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].add(1)
@@ -1050,7 +1085,7 @@ addLayer("g", {
   workMultiplier() {
     let boost = new Decimal(1)
     for (var i in player[this.layer].clickables) {
-      if (getClickableState(this.layer, i).gt(0)) boost = boost.mul(Decimal.pow(2, getClickableState(this.layer, i).sqrt()))
+      if (getTier(this.layer, i).gt(0)) boost = boost.mul(Decimal.pow(2, getTier(this.layer, i).sqrt()))
     }
     return boost
   },
@@ -1102,7 +1137,7 @@ addLayer("g", {
     cols: 3,
     11: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1110,14 +1145,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1130,13 +1165,13 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
     12: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1144,14 +1179,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1164,13 +1199,13 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
     13: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1178,14 +1213,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1198,13 +1233,13 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
     21: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1212,14 +1247,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1232,13 +1267,13 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
     22: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1246,14 +1281,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1266,13 +1301,13 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
     23: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1280,14 +1315,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1300,13 +1335,13 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
     31: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1314,14 +1349,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1334,13 +1369,13 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
     32: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1348,14 +1383,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1368,13 +1403,13 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
     33: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -1382,14 +1417,14 @@ addLayer("g", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Buy Gilded Mergeable for "+formatWhole(getMergeableCost(this.layer))+" Gilded Points"
         }
         return "Adding +" + formatWhole(this.power()) + " to the Better Mergeables cap."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -1402,7 +1437,7 @@ addLayer("g", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#a89451" }
       },
     },
@@ -1986,6 +2021,76 @@ addLayer("mp", {
   layerShown() { return false }
 })
 
+addLayer("tu", {
+  name: "scrap", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "S", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  startData() {
+    return {
+      unlocked: true,
+      points: new Decimal(0),
+      best: new Decimal(0),
+      currentMerge: null,
+      timeSinceLastAMerge: 0,
+      timeSinceLastMergeable: 0,
+      clickables: { [11]: new Decimal(0), [12]: new Decimal(0), [13]: new Decimal(0),
+      [21]: new Decimal(0), [22]: new Decimal(0), [23]: new Decimal(0),
+      [31]: new Decimal(0), [32]: new Decimal(0), [33]: new Decimal(0) } // Optional default Clickable state
+    }
+  },
+  image:"aptmamscrap.png",
+  color: "#cccccc",
+  requires: new Decimal(100000), // Can be a function that takes requirement increases into account
+  resource: "scrap", // Name of prestige currency
+  baseResource: "Mergeable Score", // Name of resource prestige is based on
+  baseAmount() { return player.sc.points }, // Get the current amount of baseResource
+  type: "none", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+  exponent: 0.95, // Prestige currency exponent
+  gainMult() { // Calculate the multiplier for main currency from bonuses
+    mult = new Decimal(1)
+    return mult
+  },
+  gainExp() { // Calculate the exponent on main currency from bonuses
+    return new Decimal(1)
+  },
+  row: 2, // Row the layer is in on the tree (0 is the first row)
+        buyables: {
+            rows: 1,
+            cols: 3,
+            11: {
+                title: "Slower Gilded Mergeable", // Optional, displayed at the top in a larger font
+                cost(x=player[this.layer].buyables[this.id]) { // cost for buying xth buyable, can be an object if there are multiple currencies
+                    let cost = new Decimal(1)
+                    cost = cost.mul(Decimal.pow(2, x))
+                    return cost.floor()
+                },
+                effect(x=player[this.layer].buyables[this.id]) { // Effects of owning x of the items, x is a decimal
+                    let eff = x
+                    eff = Decimal.pow(0.9, eff).recip()
+                    return eff.sub(1);
+                },
+                display() { // Everything else displayed in the buyable button after the title
+                    let data = tmp[this.layer].buyables[this.id]
+                    return "Cost: " + format(data.cost) + " grimoires\n\
+                    Level: " + formatWhole(player[this.layer].buyables[this.id]) + "\n\
+                    Gilded Mergeables cost scaling is "+ formatTime(data.effect.mul(100))+"% slower."
+                },
+                canAfford() {
+                    return player.t.points.gte(tmp[this.layer].buyables[this.id].cost)},
+                unlocked() {
+                  return true
+                },
+                buy() { 
+                    cost = tmp[this.layer].buyables[this.id].cost
+                    player.t.points = player.t.points.sub(cost)	
+                    player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].add(1)
+                },
+                buyMax() {}, // You'll have to handle this yourself if you want
+            },
+        },
+        layerShown: false
+})
+
 addLayer("t", {
   name: "treasures", // This is optional, only used in a few places, If absent it just uses the layer id.
   symbol: "T", // This appears on the layer's node. Default is the id with the first letter capitalized
@@ -2021,25 +2126,22 @@ addLayer("t", {
   exponent: 2.75, // Prestige currency exponent
   roundUpCost: true,
   row: 2, // Row the layer is in on the tree (0 is the first row)
-  hotkeys: [
-    { key: "m", description: "M: Reset for merge tokens", onPress() { if (canReset(this.layer)) doReset(this.layer) } },
-  ],
     clickables: {
         rows: 1,
         cols: 1,
         11: {
             title: "Summon a Treasure", // Optional, displayed at the top in a larger font
             display() { // Everything else displayed in the buyable button after the title
-                let data = getClickableState(this.layer, this.id)
-                return "Requires 10 grimoires"
+                let data = getTier(this.layer, this.id)
+                return "Requires 5 grimoires"
             },
             unlocked() { return player[this.layer].unlocked }, 
             canClick() {
-                return player[this.layer].points.gte(10)
+                return player[this.layer].points.gte(5)
                 },
             onClick() { 
-                if (!player[this.layer].points.gte(10)) return
-                player[this.layer].points = player[this.layer].points.sub(10)
+                if (!player[this.layer].points.gte(5)) return
+                player[this.layer].points = player[this.layer].points.sub(5)
                 let luck = irandom(100)
                 let cat = []
                 let normal = [11, 12, 13, 21, 22, 24, 32]
@@ -2052,7 +2154,7 @@ addLayer("t", {
                   for (i in normal) {
                     cat.push(normal[i])
                   }
-                } else if (luck < 99) {
+                } else if (luck < 99.1) {
                   type = "rare"
                   for (i in rare) {
                     cat.push(rare[i])
@@ -2093,7 +2195,7 @@ addLayer("t", {
                 effect(x=player[this.layer].buyables[this.id]) { // Effects of owning x of the items, x is a decimal
                     x = x.add(player[this.layer].bonusLevels[this.id])
                     if (!new Decimal(player[this.layer].bonusLevels[this.id]).gte(1)) return new Decimal(1)
-                    let eff = Decimal.pow(1.5, x)
+                    let eff = Decimal.pow(7.5, x)
                     return eff;
                 },
                 display() { // Everything else displayed in the buyable button after the title
@@ -2102,7 +2204,7 @@ addLayer("t", {
                     Level: " + formatWhole(player[this.layer].buyables[this.id].add(1)) + "/"+ formatWhole(tmp[this.layer].buyables[this.id].cap.add(1)) + 
                     (player[this.layer].bonusLevels[this.id].gt(1) ? "+" + formatWhole(player[this.layer].bonusLevels[this.id].sub(1))+ "/"+ formatWhole(tmp[this.layer].buyables[this.id].bonusCap.sub(1)) : "")
                     + "\n\
-                    Multiplies point gain by "+ format(data.effect)+`x. (Basic effect 1.5x.)\n\
+                    Multiplies point gain by "+ format(data.effect)+`x. (Basic effect 7.5x.)\n\
                     <br><i>"It's contained within a pandimensional crystal."</i>`
                 },
                 unlocked() { return player[this.layer].bonusLevels[this.id].gte(1) }, 
@@ -2140,7 +2242,7 @@ addLayer("t", {
                 effect(x=player[this.layer].buyables[this.id]) { // Effects of owning x of the items, x is a decimal
                     x = x.add(player[this.layer].bonusLevels[this.id])
                     if (!new Decimal(player[this.layer].bonusLevels[this.id]).gte(1)) return new Decimal(0)
-                    let eff = Decimal.div(x, 10)
+                    let eff = Decimal.div(x, 5)
                     return eff;
                 },
                 display() { // Everything else displayed in the buyable button after the title
@@ -2149,7 +2251,7 @@ addLayer("t", {
                     Level: " + formatWhole(player[this.layer].buyables[this.id].add(1)) + "/"+ formatWhole(tmp[this.layer].buyables[this.id].cap.add(1)) + 
                     (player[this.layer].bonusLevels[this.id].gt(1) ? "+" + formatWhole(player[this.layer].bonusLevels[this.id].sub(1))+ "/"+ formatWhole(tmp[this.layer].buyables[this.id].bonusCap.sub(1)) : "")
                     + "\n\
-                    Increases the chance of gaining a normal resource by "+ format(data.effect)+`%. (+0.1% chance additively.)\n\
+                    Increases the chance of gaining a normal resource by "+ format(data.effect)+`%. (+0.2% chance additively.)\n\
                     <br><i>"Brotip: use magnets for faster acquiring."</i>`
                 },
                 unlocked() { return player[this.layer].bonusLevels[this.id].gte(1) }, 
@@ -2430,7 +2532,7 @@ addLayer("t", {
                 effect(x=player[this.layer].buyables[this.id]) { // Effects of owning x of the items, x is a decimal
                     x = x.add(player[this.layer].bonusLevels[this.id])
                     if (!new Decimal(player[this.layer].bonusLevels[this.id]).gte(1)) return new Decimal(0)
-                    let eff = Decimal.div(x, 2)
+                    let eff = x
                     return eff;
                 },
                 display() { // Everything else displayed in the buyable button after the title
@@ -2439,7 +2541,7 @@ addLayer("t", {
                     Level: " + formatWhole(player[this.layer].buyables[this.id].add(1)) + "/"+ formatWhole(tmp[this.layer].buyables[this.id].cap.add(1)) + 
                     (player[this.layer].bonusLevels[this.id].gt(1) ? "+" + formatWhole(player[this.layer].bonusLevels[this.id].sub(1))+ "/"+ formatWhole(tmp[this.layer].buyables[this.id].bonusCap.sub(1)) : "")
                     + "\n\
-                    Increases the chance of gaining a Grimoire "+ format(data.effect)+`%. (+0.5% chance additively.)\n\
+                    Increases the chance of gaining a Grimoire "+ format(data.effect)+`%. (+1% chance additively.)\n\
                     <br><i>"Don't press it.."</i>`
                 },
                 unlocked() { return player[this.layer].bonusLevels[this.id].gte(1) }, 
@@ -2678,7 +2780,7 @@ addLayer("t", {
     }
   },
         tabFormat: {
-            Resources: {
+            Treasures: {
                 buttonStyle() {return  {'color': 'orange'}},
                 content:
                     ["main-display",
@@ -2712,7 +2814,39 @@ addLayer("t", {
                      "buyables"
                      ],
             },
-
+            Powers: {
+                buttonStyle() {return  {'color': 'orange'}},
+                unlocked() {return hasMilestone("sc", 14)},
+                content:
+                    ["main-display",
+                    "prestige-button", "resource-display",
+                    ["blank", "5px"],
+                     ["bar", "longBoi"],
+                    ["blank", "10px"], // Height
+                     ["display-text", function() { return "You have a "+format(getGrimoireGainRate())+"% chance to get a Grimoire each time you perform a gilded merge."}],
+                     ["blank", "10px"],
+                    "h-line",
+                    ["blank", "5px"],
+                     ["row", [["display-image", "bricks.png"], ["display-text", function() { return formatWhole(player.t.bricks) + "  " }], 
+                     ["blank", "10px"],
+                     ["display-image", "tires.png"], ["display-text", function() { return formatWhole(player.t.tires) + "  " }],  
+                     ["blank", "10px"],
+                     ["display-image", "steelbeams.png"], ["display-text", function() { return formatWhole(player.t.beams) + "  " }],  
+                     ["blank", "10px"],
+                     ["display-image", "meteorite.png"], ["display-text", function() { return formatWhole(player.t.meteorites) + "  " }]
+                     ]],
+                     ["row", [["display-image", "bones.png"], ["display-text", function() { return formatWhole(player.t.bones) + "  " }],  
+                     ["blank", "10px"],
+                     ["display-image", "crystals.png"], ["display-text", function() { return formatWhole(player.t.crystals) + "  " }],  
+                     ["blank", "10px"],
+                     ["display-image", "stars.png"], ["display-text", function() { return formatWhole(player.t.stars) + "  " }],  
+                     ["blank", "10px"],
+                     ["display-image", "magnets.png"], ["display-text", function() { return formatWhole(player.t.magnets) + "  " }]
+                     ]],
+                     ["display-text", function() { return "You have a "+format(getAcquireResourceRate())+"% chance to get a Normal Resource each time you perform a normal merge."}],
+                     ["layer-proxy", ["tu", "buyables"]]
+                     ],
+            },
         },
   layerShown() { return hasMilestone("sc", 9) }
 })
@@ -2775,7 +2909,7 @@ addLayer("scr", {
     cols: 3,
     11: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -2783,14 +2917,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -2803,13 +2937,13 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
     12: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -2817,14 +2951,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -2837,13 +2971,13 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
     13: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -2851,14 +2985,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -2871,13 +3005,13 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
     21: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -2885,14 +3019,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -2905,13 +3039,13 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
     22: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -2919,14 +3053,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -2939,13 +3073,13 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
     23: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -2953,14 +3087,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -2973,13 +3107,13 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
     31: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -2987,14 +3121,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -3007,13 +3141,13 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
     32: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -3021,14 +3155,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -3041,13 +3175,13 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
     33: {
       title() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return "Empty Spot"
         } else {
@@ -3055,14 +3189,14 @@ addLayer("scr", {
         }
       },
       display() { // Everything else displayed in the buyable button after the title
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         if (data == 0) {
           return ""
         }
         return "Producing +" + formatWhole(this.power()) + " scrap each minute."
       },
       power() {
-        let data = getClickableState(this.layer, this.id)
+        let data = getTier(this.layer, this.id)
         let effect = Decimal.pow(3, data.sub(1))
         return effect
       },
@@ -3075,7 +3209,7 @@ addLayer("scr", {
       },
       style() {
         if (player[this.layer].currentMerge == this.id) return { 'background-color': "#ffffff" }
-        if (getClickableState(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
+        if (getTier(this.layer, this.id).eq(0)) return { 'background-color': "#525252" }
         return { 'background-color': "#b8c8e3" }
       },
     },
@@ -3206,6 +3340,26 @@ addLayer("scr", {
                 buyMax() {}, // You'll have to handle this yourself if you want
             },
         },
+        bars: {
+            longBoi: {
+                fillStyle: {'background-color' : "#8a989c"},
+                baseStyle: {'background-color' : "#2e4045"},
+                textStyle: {'color': '#5c6466'},
+
+                borderStyle() {return {}},
+                direction: RIGHT,
+                width: 500,
+                height: 50,
+                progress() {
+                    return (player[this.layer].timeSinceLastMergeable / (layers.scr.mergeableRate()))
+                },
+                display() {
+                    return formatTime(player[this.layer].timeSinceLastMergeable) + " / " + formatTime(layers.scr.mergeableRate()) + " to next Scrap Mergeable"
+                },
+                unlocked: true,
+
+            },
+        },
         branches: ["t"],
         tabFormat: {
             Upgrades: {
@@ -3228,7 +3382,8 @@ addLayer("scr", {
                     "h-line",
                     ["blank", "5px"],
                      "clickables",
-                    ["blank", "15px"]
+                    ["blank", "15px"],
+                    ["bar", "longBoi"]
                     ]
             },
 
@@ -3252,8 +3407,8 @@ addLayer("sc", {
         update(diff) {
           player[this.layer].points = new Decimal(0)
           for (var i in player.p.clickables) {
-            if (!new Decimal(getClickableState("p", i)).eq(0)) {
-              player[this.layer].points = player[this.layer].points.add(Decimal.pow(3, getClickableState("p", i)))
+            if (!new Decimal(getTier("p", i)).eq(0)) {
+              player[this.layer].points = player[this.layer].points.add(Decimal.pow(3, getTier("p", i)))
             }
           }
         	player[this.layer].best = player[this.layer].best.max(player[this.layer].points)
@@ -3349,6 +3504,11 @@ addLayer("sc", {
                 },
                 toggles: [
                     ["automation", "g", "autoGildOn"]],
+            },
+            14: {requirementDescription: "5e15 Mergeable Score",
+                unlocked() {return hasMilestone(this.layer, 9)},
+                done() {return player[this.layer].best.gte(5e15)}, // Used to determine when to give the milestone
+                effectDescription: "Unlock Powers.",
             },
         },
         layerShown() { return player[this.layer].best.gt(0) }

@@ -12,16 +12,21 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.4.0",
-	name: "Is this Realm Grinder?",
+	num: "0.4.1",
+	name: "Looks like a QOL UPDATE.",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.4.1</h3><br>
+    - Scrap Mergeables now have a bar showing the time before they next produce.
+    - Implemented custom colors for normal Mergeables.
+    - Halved Treasure summoning cost.
+    - Buffed Acquirement Magnet, Antimatter Cube, and The Button effects.
 	<h3>v0.4.0</h3><br>
-		- Introduced Treasures - Obtain Grimoires from merging Gilded Mergeables to spend on a roll for Treasures. (Yes, they are gacha.)<br>
+		- Introduced Treasures. Obtain Grimoires from merging Gilded Mergeables to spend on a roll for Treasures. (Yes, they are gacha.)<br>
 		- Added Resources. There are eight resources; Bricks, Tires, Rods, Meteorites, Bones, Crystals, Stars and Magnets. They are used to upgrade Treasures.<br>
 		- Added Scraps. When you max out the bonus levels of a Treasure, you can get Scrap.<br>
-    - Added Scrap Mergeables. They function like normal Mergeables, but they provide more of a boost.<br>
+    - Added Scrap Mergeables. They function like normal Mergeables, but they produce Scrap.<br>
     - Added new Scrap Upgrades; More Points, More Work, Faster Auto-Merge, and Faster Scrap Mergeables.<br>
 	<h3>v0.3.0.2</h3><br>
 		- Fixed a bug involving More Mergeables.<br>
@@ -134,7 +139,8 @@ function addedPlayerData() { return {
         autoGildOn: false,
     }
   },
-  timeSinceLastMerge: 0
+  timeSinceLastMerge: 0,
+  seedColor: getRNGSeed()
 }}
 
 // Display extra things at the top of the page

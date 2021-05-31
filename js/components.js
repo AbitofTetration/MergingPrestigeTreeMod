@@ -36,6 +36,7 @@ function loadVue() {
 			<img class="instant" v-bind:src= "data" v-bind:alt= "data">
 		`
 	})
+
 		
 	// data = an array of Components to be displayed in a row
 	Vue.component('row', {
@@ -416,6 +417,20 @@ function loadVue() {
 			<button v-if="tmp[layer].buyables && tmp[layer].buyables[data].sellAll && !(tmp[layer].buyables[data].canSellAll !== undefined && tmp[layer].buyables[data].canSellAll == false)" v-on:click="run(tmp[layer].buyables[data].sellAll, tmp[layer].buyables[data])"
 				v-bind:class="{ longUpg: true, can: player[layer].unlocked, locked: !player[layer].unlocked }">{{tmp[layer].buyables.sellAllText ? tmp[layer].buyables.sellAllText : "Sell All"}}</button>
 	`
+	})
+  
+
+	// data [other layer, tabformat for within proxy]
+	Vue.component('layer-proxy', {
+		props: ['layer', 'data'],
+		computed: {
+			key() {return this.$vnode.key}
+		},
+		template: `
+		<div>
+			<column :layer="data[0]" :data="data[1]" :key="key + 'col'"></column>
+		</div>
+		`
 	})
 
 	// SYSTEM COMPONENTS
